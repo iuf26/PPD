@@ -1,0 +1,15 @@
+cmd line arguments java program:
+args[0] = nr de threaduri(de tip int) sau cuvantul cheie "seq" daca executam varianta secventiala
+args[1] = absolute filepath unde se va stoca rezultatul
+
+-compile java program
+-open cmd
+-run comand : javac D:/FACULTATE-AN3-SEM1/PPD/Tema-Lab1/src/*.java
+-to execute java program run: java -cp D:/FACULTATE-AN3-SEM1/PPD/Tema-Lab1/src Main <"seq"> | <number_of_threads> <output_file_path>
+
+
+
+Rulare script power shell: 
+comanda : PowerShell -File D:/FACULTATE-AN3-SEM1/PPD/my_run.ps1 <path Main.class java> <nr_threads | "seq"> <nr_of_runs> <outfile_path> <matrix_description>
+
+Rulare script de comparare a output-ului fisierelor :  PowerShell -File D:/FACULTATE-AN3-SEM1/PPD/compare.ps1
