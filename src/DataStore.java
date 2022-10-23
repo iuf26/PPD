@@ -12,6 +12,11 @@ public class DataStore {
     public int m,n; // kernel m rows n columns
 
 
+    /**
+     * Constructor
+     * Reads matrix data from file
+     * @param fileName
+     */
     public DataStore(String fileName) {
         try {
             File myObj = new File(fileName);
@@ -55,6 +60,13 @@ public class DataStore {
         }
     }
 
+    /**
+     * conerts a matrix to a list with size _m * _n with exactly the same elements
+     * @param _matrix a matrix double values
+     * @param _m rows
+     * @param _n columns
+     * @return
+     */
     public double[] convertMatrixToList(double[][] _matrix,int _m,int _n){
         double[] result = new double[_m * _n];
         int current = 0;

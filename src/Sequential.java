@@ -2,18 +2,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Sequential {
-    private final double[][] resultMatrix;
     private final double[] listMatrix;
     private final double[] listKernel;
     private final DataStore store;
 
 
-    public Sequential(double[][] resultMatrix,DataStore store) {
+    public Sequential(DataStore store,double[] _listMatrix,double[] _listKernel) {
 
-        this.resultMatrix = resultMatrix;
+
         this.store = store;
-        listMatrix = store.convertMatrixToList(store.matrix, store.M,store.N);
-        listKernel = store.convertMatrixToList(store.kernel,store.m,store.n);
+        listMatrix = _listMatrix;
+        listKernel = _listKernel;
 
 
     }
@@ -22,8 +21,8 @@ public class Sequential {
      *
      * @param i
      * @param j
-     * @return a value  inside matrix if indexes permit that
-     * 0 otherwise
+     * @return a value  that is always valid for the original store.matrix following the frontier rules
+     *
      *
      */
     private double getGuardedMatrixElement(int i,int j) {
@@ -73,19 +72,31 @@ public class Sequential {
         return result;
 
     }
-    public void computeResultListMatrix(){
-            int l = 0,c = 0;
-            for(int i = 0;i<listMatrix.length;i++){
 
-                if(c == store.N){
-                    c = 0;
-                    l++;
-                }
-                resultMatrix[l][c] = getResultMatrixCorespondentElement(i);
+    public void computeResultListMatrix(int start,int end,double[] result){
+
+            for(int i = start; i< end;i++){
+                result[i] = getResultMatrixCorespondentElement(i);
+            }
+    }
+
+    public double[][] convertListToMatrix(double[] list,int _m,int _n){
+            double[][] result = new double[_m][_n];
+            int l=0;
+            int c = 0;
+        for (double v : list) {
+            if (c == _n) {
+                c = 0;
+                l++;
+            }
+            if (l < _m) {
+                result[l][c] = v;
                 c++;
             }
-
+        }
+            return result;
     }
+
 
 
 
