@@ -1,12 +1,9 @@
 
-$param2 = $args[1] # No of threads int type or "seq" keyword if we have a sequential running
-#Write-Host $param2
+$param2 = $args[0] # No of threads int type or "seq" keyword if we have a sequential running
 
-$param3 = $args[2] # No of runs
-#Write-Host $param2
-$outputFilePath = $args[3]
+$outputFilePath = $args[1]
 
-$tipMatrice = $args[4]
+$tipMatrice = $args[2]
 
 $suma = 0
 

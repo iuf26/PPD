@@ -3,6 +3,9 @@
 #include <fstream>
 #include <sstream>
 #include <cstring>
+#include <thread>
+#include <chrono>
+#include <vector>
 using namespace std;
 
 double *convertMatrixToList(double **_matrix, int _m, int _n)
@@ -121,6 +124,7 @@ double **convertListToMatrix(double *list, int _m, int _n)
 }
 
 const string filename = "date.txt";
+
 int main(int argc, char **argv)
 {
     // Citire din fisier + initializare
@@ -183,11 +187,15 @@ int main(int argc, char **argv)
     if (strcmp(argv[1], "seq") == 0)
     {
         // sequential run
-        cout << "starting seq run...";
+       
         const int resSize = M * N;
         double *result = new double[resSize];
+        auto startWatch = chrono::high_resolution_clock::now();
         computeResultListMatrix(0, M * N, result, m, n, M, N, listKernel, matrix);
         double **finalResult = convertListToMatrix(result, M, N);
+        auto endWatch = chrono::high_resolution_clock::now();
+        cout << chrono::duration<double, milli>(endWatch - startWatch).count();
+
         ofstream MyFile(outputFile);
         for (int i = 0; i < M; i++)
         {
@@ -202,7 +210,45 @@ int main(int argc, char **argv)
     else
     {
         // threads run
-        cout << "starting threads run...";
+      
         int threadsNr = atoi(argv[1]);
+        double *result = new double[M * N];
+        vector<thread> workers(threadsNr);
+        int whole = (M * N) / threadsNr;
+        int reminder = (M * N) % threadsNr;
+        int left = 0;
+        int right = whole;
+        auto startWatch = chrono::high_resolution_clock::now();
+        for (int i = 0; i < threadsNr; i++)
+        {
+            if (reminder)
+            {
+                right++;
+                reminder--;
+            }
+
+            workers[i] = thread(computeResultListMatrix, left, right, result, m, n, M, N, listKernel, matrix); // thread starts imediatly
+            left = right;
+            right = right + whole;
+        }
+
+        for (int i = 0; i < threadsNr; i++)
+        {
+            workers[i].join();
+        }
+        double **finalResult = convertListToMatrix(result, M, N);
+        auto endWatch = chrono::high_resolution_clock::now();
+        cout << chrono::duration<double, milli>(endWatch - startWatch).count();
+
+        ofstream MyFile(outputFile);
+        for (int i = 0; i < M; i++)
+        {
+            for (int j = 0; j < N; j++)
+            {
+                MyFile << finalResult[i][j] << " ";
+            }
+            MyFile << "\n";
+        }
+        MyFile.close();
     }
 }
