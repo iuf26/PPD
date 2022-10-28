@@ -3,6 +3,7 @@ import com.sun.tools.jconsole.JConsoleContext;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.concurrent.CyclicBarrier;
 
 public class Main {
 
@@ -23,8 +24,9 @@ public class Main {
 
 
 
-    public static void computeResultMatrixUsingThreads(int p,int matrixListLength,Sequential sequential,double[] resultMatrix){
+    public static void computeResultMatrixUsingThreads(int p,int matrixListLength,Sequential sequential,DataStore store){
         Thread[] threads = new Thread[p];
+        CyclicBarrier threadsBarrier = new CyclicBarrier(p);
         int whole = matrixListLength/ p;
         int reminder = matrixListLength % p;
         int left = 0;
@@ -35,7 +37,7 @@ public class Main {
                 right++;
                 reminder--;
             }
-            threads[i] = new IntervalThread(sequential,left,right,resultMatrix);
+            threads[i] = new IntervalThread(sequential,left,right,store,threadsBarrier);
             threads[i].start();
 
             left=  right;
@@ -57,34 +59,29 @@ public class Main {
     public static void main(String[] args) {
 
         String outputFileResult = args[1];
-        DataStore store = new DataStore("D:\\FACULTATE-AN3-SEM1\\PPD\\Tema-Lab1\\src\\date.txt");
+        DataStore store = new DataStore("D:\\FACULTATE-AN3-SEM1\\PPD\\Tema-Lab2\\src\\date.txt");
         double[] listMatrix = store.convertMatrixToList(store.matrix, store.M,store.N);
         double[] listKernel = store.convertMatrixToList(store.kernel,store.m,store.n);
         Sequential sequential = new Sequential(store,listMatrix,listKernel);
-        if(args[0].compareTo("seq") == 0){
-            double[] resultMatrix = new double[store.M * store.N];
+        int threadsNumber = Integer.parseInt(args[0]);
+
+//                for(int i = 0;i<store.M;i++){
+//                    for(int j = 0;j<store.N;j++){
+//                        System.out.print(store.matrix[i][j] +  "  ");
+//                    }
+//                    System.out.println();
+//                }
+
             long startTime = System.nanoTime();
-            sequential.computeResultListMatrix(0, listMatrix.length,resultMatrix);
+            computeResultMatrixUsingThreads(threadsNumber,listMatrix.length,sequential,store);
             long endTime = System.nanoTime();
-            System.out.println(endTime - startTime);
+            System.out.println((double)endTime - startTime/1E6);
             try {
-                printResult(sequential.convertListToMatrix(resultMatrix,store.M,store.N),store.M,store.N,outputFileResult);
+                printResult(store.matrix,store.M,store.N,outputFileResult);
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        }else{
-            int threadsNumber = Integer.parseInt(args[0]);
-            double[] resultMatrixInterval = new double[store.M * store.N];
-            long startTime = System.nanoTime();
-            computeResultMatrixUsingThreads(threadsNumber,listMatrix.length,sequential,resultMatrixInterval);
-            long endTime = System.nanoTime();
-            System.out.println(endTime - startTime);
-            try {
-                printResult(sequential.convertListToMatrix(resultMatrixInterval,store.M,store.N),store.M,store.N,outputFileResult);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+
 
 
 
