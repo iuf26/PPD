@@ -6,6 +6,11 @@ const wss = new WebSocket.Server({ server });
 const Router = require("koa-router");
 const cors = require("koa-cors");
 const bodyparser = require("koa-bodyparser");
+const jwt = require("koa-jwt");
+const jsonwebtoken = require("jsonwebtoken");
+const corsBasic = require("cors");
+
+const jwtSecret = "secret123";
 
 app.use(bodyparser());
 app.use(cors());
@@ -66,7 +71,7 @@ const createRandomFlights = (nr) => {
   return flights;
 };
 
-const items = createRandomFlights(6);
+const items = createRandomFlights(100);
 
 let lastUpdated = items[items.length - 1].date;
 let lastId = items[items.length - 1].id;
@@ -79,7 +84,14 @@ const broadcast = (data) =>
     }
   });
 
+const publicRouter = new Router();
 const router = new Router();
+router.use(jwt({ secret: jwtSecret, algorithms: ["HS256"] }));
+router.get("/jwt", (ctx) => {
+  ctx.response.body = {
+    token: jsonwebtoken.sign({ user: "johndoe" }, jwtSecret),
+  };
+});
 
 router.get("/item", (ctx) => {
   // const ifModifiedSince = ctx.request.get('If-Modified-Since');
@@ -99,7 +111,7 @@ router.get("/item", (ctx) => {
   //   items: sortedItems.slice(offset, offset + pageSize),
   //   more: offset + pageSize < sortedItems.length
   // };
- 
+
   ctx.response.body = items;
   ctx.response.status = 200;
 });
@@ -118,9 +130,30 @@ router.get("/item/:id", async (ctx) => {
   }
 });
 
+const accounts = [
+  { user: "i@done.com", pass: "123" },
+  { user: "b@done.com", pass: "123" },
+];
+publicRouter.post("/login", async (ctx) => {
+  const body = ctx.request.body;
+  if (
+    accounts.find((elem) => elem.pass === body.pass && elem.user === body.user)
+  ) {
+    ctx.response.body = {
+      token: jsonwebtoken.sign({ user: "johndoe" }, jwtSecret),
+    };
+    ctx.response.status = 200;
+
+    return;
+  }
+
+  ctx.response.status = 400;
+  return;
+});
+
 const createItem = async (ctx) => {
   const item = ctx.request.body;
- 
+
   item.id = items.length + 1;
   items.push(item);
   ctx.response.body = item;
@@ -163,6 +196,7 @@ router.del("/item/:id", (ctx) => {
 });
 
 app.use(router.routes());
+app.use(publicRouter.routes());
 app.use(router.allowedMethods());
 
 server.listen(3000);
