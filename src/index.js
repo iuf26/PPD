@@ -18,7 +18,6 @@ app.use(async (ctx, next) => {
   const start = new Date();
   await next();
   const ms = new Date() - start;
-  console.log(`${ctx.method} ${ctx.url} ${ctx.response.status} - ${ms}ms`);
 });
 
 app.use(async (ctx, next) => {
@@ -46,13 +45,28 @@ class Item {
   }
 }
 class Flight {
-  constructor({ id, airlineCode, estimatedArrival, landed }) {
+  constructor({ id, airlineCode, estimatedArrival, landed, userId }) {
     this.id = id;
     this.airlineCode = airlineCode;
     this.estimatedArrival = estimatedArrival;
     this.landed = landed;
+    this.userId = userId;
   }
 }
+function getRandonString(length) {
+  var chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ012";
+  var charLength = chars.length;
+  var result = "";
+  for (var i = 0; i < length; i++) {
+    result += chars.charAt(Math.floor(Math.random() * charLength));
+  }
+  return result;
+}
+function getRandomInt(max) {
+  return Math.floor(Math.random() * max);
+}
+const truthValues = [true, false];
+const userIds = [1, 2];
 const createRandomFlights = (nr) => {
   let id = 1;
   const flights = [];
@@ -60,9 +74,10 @@ const createRandomFlights = (nr) => {
     flights.push(
       new Flight({
         id,
-        airlineCode: "ATC-1000",
-        landed: false,
+        airlineCode: getRandonString(10),
+        landed: truthValues[getRandomInt(2)],
         estimatedArrival: new Date(),
+        userId: userIds[getRandomInt(2)],
       })
     );
     id++;
@@ -113,6 +128,7 @@ router.get("/item", (ctx) => {
   // };
 
   ctx.response.body = items;
+
   ctx.response.status = 200;
 });
 
@@ -136,11 +152,15 @@ const accounts = [
 ];
 publicRouter.post("/login", async (ctx) => {
   const body = ctx.request.body;
+  let userId = -1;
+  if (body.user === accounts[0].user) userId = 1;
+  if (body.user === accounts[1].user) userId = 2;
   if (
     accounts.find((elem) => elem.pass === body.pass && elem.user === body.user)
   ) {
     ctx.response.body = {
       token: jsonwebtoken.sign({ user: "johndoe" }, jwtSecret),
+      userId,
     };
     ctx.response.status = 200;
 
@@ -155,7 +175,10 @@ const createItem = async (ctx) => {
   const item = ctx.request.body;
 
   item.id = items.length + 1;
+  item.userId = parseInt(ctx.request.query.userId);
+  console.log(items.length);
   items.push(item);
+  console.log(items.length);
   ctx.response.body = item;
   ctx.response.status = 201; // CREATED
   broadcast({ event: "created", payload: { item } });
