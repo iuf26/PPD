@@ -173,15 +173,26 @@ publicRouter.post("/login", async (ctx) => {
 
 const createItem = async (ctx) => {
   const item = ctx.request.body;
-
-  item.id = items.length + 1;
-  item.userId = parseInt(ctx.request.query.userId);
-  console.log(items.length);
-  items.push(item);
-  console.log(items.length);
-  ctx.response.body = item;
-  ctx.response.status = 201; // CREATED
-  broadcast({ event: "created", payload: { item } });
+  if (item.id > 0) {
+    const index = items.findIndex(
+      (elem) => elem.id.toString() === item.id.toString()
+    );
+    if (index > -1) {
+      items[index] = item;
+    }
+    ctx.response.body = item;
+    ctx.response.status = 200; // CREATED
+    broadcast({ event: "updated", payload: { item } });
+  } else {
+    item.id = items.length + 1;
+    item.userId = parseInt(ctx.request.query.userId);
+    console.log(item);
+    items.push(item);
+    console.log(items.length);
+    ctx.response.body = item;
+    ctx.response.status = 201; // CREATED
+    broadcast({ event: "created", payload: { item } });
+  }
 };
 
 router.post("/item", async (ctx) => {
