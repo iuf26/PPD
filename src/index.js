@@ -45,12 +45,13 @@ class Item {
   }
 }
 class Flight {
-  constructor({ id, airlineCode, estimatedArrival, landed, userId }) {
+  constructor({ id, airlineCode, estimatedArrival, landed, userId,imgSrc }) {
     this.id = id;
     this.airlineCode = airlineCode;
     this.estimatedArrival = estimatedArrival;
     this.landed = landed;
     this.userId = userId;
+    this.imgSrc = imgSrc;
   }
 }
 function getRandonString(length) {
@@ -78,6 +79,7 @@ const createRandomFlights = (nr) => {
         landed: truthValues[getRandomInt(2)],
         estimatedArrival: new Date(),
         userId: userIds[getRandomInt(2)],
+        imgSrc: '1668861336154.jpeg'
       })
     );
     id++;
@@ -128,7 +130,7 @@ router.get("/item", (ctx) => {
   // };
 
   ctx.response.body = items;
-
+console.log("GET");
   ctx.response.status = 200;
 });
 
@@ -181,6 +183,8 @@ const createItem = async (ctx) => {
       items[index] = item;
     }
     ctx.response.body = item;
+    console.log("updated");
+    console.log(item);
     ctx.response.status = 200; // CREATED
     broadcast({ event: "updated", payload: { item } });
   } else {
@@ -209,7 +213,8 @@ router.put("/item/:id", async (ctx) => {
     ctx.response.status = 400; // BAD REQUEST
     return;
   }
-
+  console.log("updated");
+  console.log(item);
   items[index] = item;
   lastUpdated = new Date();
   ctx.response.body = item;
