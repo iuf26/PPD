@@ -16,38 +16,52 @@ class Node{
 
 class MyList {
     Node head;
-    Node front;
+
 
     public MyList() {
         this.head = null;
-        this.front = null;
+
     }
     synchronized
     public void addItem(Node node){
         // if there are no elements in list yet
         if(head == null) {
             head = node;
-            front = node;
             return;
         }
         if(this.head.exponent == node.exponent){
             this.head.coefficient = this.head.coefficient + node.coefficient;
             return;
         }
+        if( this.head.exponent > node.exponent){
+            Node copy = this.head;
+            this.head= node;
+            this.head.next = copy;
+            return;
+        }
         Node headCopy = new Node(head.exponent,head.coefficient,head.next);
+        Node predec = null;
         while(headCopy != null){
             if(headCopy.exponent == node.exponent){
                 //if thre exists an element with that specific exponent
-                headCopy.coefficient = headCopy.coefficient + node.coefficient;
+                headCopy.coefficient =headCopy.coefficient + node.coefficient;
+
                 return;
             }
+            if( headCopy.exponent > node.exponent && predec != null){
+                predec.next = node;
+                node.next =  headCopy;
+
+                return;
+            }
+
+            predec = headCopy;
             headCopy = headCopy.next;
         }
-        //if there is no exponent with that specific value add a new node
-        this.front.next = node;
-        this.front = node;
+        //if there is no exponent with that specific value add a new node,set it as last element
 
-        return;
+        predec.next = new Node(node.exponent,node.coefficient,null);
+
     }
 
     public void printMyList(MyList list,String outputFilePath){
@@ -361,20 +375,20 @@ public class Main {
     }
 
     public static void compareCase1(){
-        String sequential = "src/output/caz1/caz1.txt";
-        String _4t = "src/output/caz1/caz1-4t.txt";
-        String _6t = "src/output/caz1/caz1-6t.txt";
-        String _8t = "src/output/caz1/caz1-8t.txt";
+        String sequential = "src/output/caz1.txt";
+        String _4t = "src/output/caz1-4t.txt";
+        String _6t = "src/output/caz1-6t.txt";
+        String _8t = "src/output/caz1-8t.txt";
         compareSequentialSolutionToThreadSolution(sequential,_4t);
         compareSequentialSolutionToThreadSolution(sequential,_6t);
         compareSequentialSolutionToThreadSolution(sequential,_8t);
     }
 
     public static void compareCase2(){
-        String sequential = "src/output/caz2/caz2.txt";
-        String _4t = "src/output/caz2/caz2-4t.txt";
-        String _6t = "src/output/caz2/caz2-6t.txt";
-        String _8t = "src/output/caz2/caz2-8t.txt";
+        String sequential = "src/output/caz2.txt";
+        String _4t = "src/output/caz2-4t.txt";
+        String _6t = "src/output/caz2-6t.txt";
+        String _8t = "src/output/caz2-8t.txt";
         compareSequentialSolutionToThreadSolution(sequential,_4t);
         compareSequentialSolutionToThreadSolution(sequential,_6t);
         compareSequentialSolutionToThreadSolution(sequential,_8t);
@@ -398,7 +412,7 @@ public class Main {
         //ThreadsSoltion sol = new ThreadsSoltion(6,"src/input/caz2",5);
         //ThreadsSoltion sol = new ThreadsSoltion(8,"src/input/caz2",5);
 //        long startTime = System.nanoTime();
-//        MyList result = sol.solve();
+        //MyList result = sol.solve();
 //        long endTime = System.nanoTime();
 //        System.out.println((double)endTime - startTime/1E6);
         //result.printMyList(result,"src/output/caz1-4t.txt");
