@@ -25,17 +25,26 @@ class MyList {
     synchronized
     public void addItem(Node node){
         // if there are no elements in list yet
+        if(node.coefficient == 0)return;
         if(head == null) {
             head = node;
             return;
         }
         if(this.head.exponent == node.exponent){
-            this.head.coefficient = this.head.coefficient + node.coefficient;
-            return;
+            if(this.head.coefficient + node.coefficient != 0) {
+                this.head.coefficient = this.head.coefficient + node.coefficient;
+                return;
+            }
+            //remove head;
+            if(head.next == null){
+                this.head = null;
+                return;
+            }
+            head = head.next;
         }
         if( this.head.exponent > node.exponent){
             Node copy = this.head;
-            this.head= node;
+            this.head= new Node(node.exponent,node.coefficient,null);
             this.head.next = copy;
             return;
         }
@@ -44,13 +53,28 @@ class MyList {
         while(headCopy != null){
             if(headCopy.exponent == node.exponent){
                 //if thre exists an element with that specific exponent
-                headCopy.coefficient =headCopy.coefficient + node.coefficient;
+                if(headCopy.coefficient + node.coefficient != 0) {
+                    headCopy.coefficient = headCopy.coefficient + node.coefficient;
+                    return;
+                }
 
+                // you should remove current node with exponent
+                //if at the last node in the list
+                if(headCopy.next == null){
+                    if(predec != null) {
+                        predec.next = null;
+                        return;
+                    }
+                }
+                if(predec != null) {
+                    predec.next = headCopy.next;
+                }
                 return;
+
             }
             if( headCopy.exponent > node.exponent && predec != null){
                 predec.next = node;
-                node.next =  headCopy;
+                predec.next.next =  headCopy;
 
                 return;
             }
@@ -400,30 +424,30 @@ public class Main {
         //generatePolynoms(10,1000,50,"src/input/caz1");
         //generatePolynoms(5,10000,100,"src/input/caz2");
         //SequentialSolution sol = new SequentialSolution("src/input/caz1",10);
-        //SequentialSolution sol = new SequentialSolution("src/input/caz2",5);
+       // SequentialSolution sol = new SequentialSolution("src/input/caz2",5);
         //MyList result = sol.solve();
         //sol.printMyList(result,"src/output/caz1.txt");
         //sol.printMyList(result,"src/output/caz2.txt");
 
         //ThreadsSoltion sol = new ThreadsSoltion(4,"src/input/caz1",10);
-        //ThreadsSoltion sol = new ThreadsSoltion(6,"src/input/caz1",10);
-        //ThreadsSoltion sol = new ThreadsSoltion(8,"src/input/caz1",10);
-        //ThreadsSoltion sol = new ThreadsSoltion(4,"src/input/caz2",5);
+      // ThreadsSoltion sol = new ThreadsSoltion(6,"src/input/caz1",10);
+        ThreadsSoltion sol = new ThreadsSoltion(8,"src/input/caz1",10);
+        // sol = new ThreadsSoltion(4,"src/input/caz2",5);
         //ThreadsSoltion sol = new ThreadsSoltion(6,"src/input/caz2",5);
         //ThreadsSoltion sol = new ThreadsSoltion(8,"src/input/caz2",5);
 //        long startTime = System.nanoTime();
-        //MyList result = sol.solve();
+        MyList result = sol.solve();
 //        long endTime = System.nanoTime();
 //        System.out.println((double)endTime - startTime/1E6);
         //result.printMyList(result,"src/output/caz1-4t.txt");
         //result.printMyList(result,"src/output/caz1-6t.txt");
-        //result.printMyList(result,"src/output/caz1-8t.txt");
+        result.printMyList(result,"src/output/caz1-8t.txt");
         //result.printMyList(result,"src/output/caz2-4t.txt");
         //result.printMyList(result,"src/output/caz2-6t.txt");
-        //result.printMyList(result,"src/output/caz2-8t.txt");
+       // result.printMyList(result,"src/output/caz2-8t.txt");
         //result.printMyList(result,"src/output/caz1.txt");
         //result.printMyList(result,"src/output/caz2.txt");
-        compareCase1();
-        compareCase2();
+//        compareCase1();
+//        compareCase2();
     }
 }
