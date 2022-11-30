@@ -22,8 +22,8 @@ class MyList {
         this.head = null;
 
     }
-    synchronized
-    public void addItem(Node node){
+
+    public synchronized void addItem(Node node){
         // if there are no elements in list yet
         if(node.coefficient == 0)return;
         if(head == null) {
@@ -112,32 +112,70 @@ class MyList {
 class MyQueue{
     ArrayList<Node> queue;
     public int queueReadsLeft;
+    public int flagForProducer;
     public ReentrantLock lock = new ReentrantLock();
-
+    private boolean transfer; // transfer true -> producer is working, false -> consumer is consuming
     public MyQueue(int queueReadsLeft) {
         this.queue = new ArrayList<Node>();
         this.queueReadsLeft = queueReadsLeft;
+        this.flagForProducer = queueReadsLeft;
+        this.transfer = true;
     }
-    synchronized
-    public void enqueue(Node node){
+    public synchronized boolean getTransfer(){
+        return transfer;
+    }
+    public synchronized void enqueue(Node node){
+
+            while(!transfer)    {
+                try {
+                    wait();
+                    System.out.println("waiting... in enqueue");
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    System.err.println("Thread Interrupted");
+                }
+            }
+           // if( this.queueReadsLeft <= 0) return;
             System.out.println("Producer is adding elem in queue....");
+            this.transfer = false;
             queue.add(node);
+            flagForProducer--;
+            notifyAll();
 
 
     }
-    synchronized
-    public Node dequeue(){
+
+    public synchronized Node dequeue(){
+        //if( this.queueReadsLeft <= 0) return null;
+        System.out.println("Starting deque process");
+        while (transfer) {
+            try {
+                System.out.println("I sleep");
+                wait();
+                System.out.println("I'm awake");
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                System.err.println("Thread Interrupted");
+            }
+        }
+        //if( this.queueReadsLeft <= 0) return null;
+        System.out.println("Ready to deque");
+        transfer = true;
 
         if(queue.size() == 0) {return null;}
         Node result = queue.get(0);
         queue.remove(0);
         queueReadsLeft--;
-
+        notifyAll();
         return result;
 
     }
-    synchronized
-    public boolean keepWaiting(){
+    public synchronized int getQueueReadsLeft(){
+
+        return this.queueReadsLeft;
+
+    }
+    public synchronized boolean keepWaiting(){
 
             return this.queueReadsLeft > 0;
 
@@ -244,9 +282,10 @@ class ThreadsSoltion {
                     while (scanner.hasNext()) {
                         int exponent = Integer.parseInt(scanner.next());
                         int coefficient = Integer.parseInt(scanner.next());
-                        //System.out.print(exponent + " -> "+ coefficient + "\n");
+
                         queue.enqueue(new Node(exponent, coefficient, null));
-                        //System.out.println(queue.queue.get(0));
+                        System.out.println("Done enqueue");
+
                     }
 
                     // close the scanner
@@ -255,18 +294,26 @@ class ThreadsSoltion {
                     e.printStackTrace();
                 }
             }
+            System.out.println("done PRODUCER");
         });
         producer.setPriority(Thread.MIN_PRIORITY);
         List<Thread> consumers = new ArrayList<Thread>();
         for (int i = 0; i < this.threadNr - 1; i++) {
             Thread t = new Thread(() -> {
-                while (queue.keepWaiting()) {//until when?
+                while (queue.keepWaiting()) {
+
                     Node elem = queue.dequeue();
+
                     if (elem != null) {
                         System.out.println("Consumer is adding element to result List... " + elem.exponent + "->" + elem.coefficient);
                         resultList.addItem(elem);
+
                     }
+
+
+
                 }
+                System.out.println("Thread down");
             });
             t.setPriority(Thread.NORM_PRIORITY);
             consumers.add(t);
@@ -274,17 +321,23 @@ class ThreadsSoltion {
         producer.start();
         consumers.forEach(Thread::start);
         try {
+
             producer.join();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+
         consumers.forEach(thread -> {
             try {
                 thread.join();
+
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         });
+
+
+
 
     return resultList;
     }
@@ -429,9 +482,9 @@ public class Main {
         //sol.printMyList(result,"src/output/caz1.txt");
         //sol.printMyList(result,"src/output/caz2.txt");
 
-        //ThreadsSoltion sol = new ThreadsSoltion(4,"src/input/caz1",10);
+        ThreadsSoltion sol = new ThreadsSoltion(4,"src/input/caz1",10);
       // ThreadsSoltion sol = new ThreadsSoltion(6,"src/input/caz1",10);
-        ThreadsSoltion sol = new ThreadsSoltion(8,"src/input/caz1",10);
+        //ThreadsSoltion sol = new ThreadsSoltion(8,"src/input/caz1",10);
         // sol = new ThreadsSoltion(4,"src/input/caz2",5);
         //ThreadsSoltion sol = new ThreadsSoltion(6,"src/input/caz2",5);
         //ThreadsSoltion sol = new ThreadsSoltion(8,"src/input/caz2",5);
@@ -441,7 +494,8 @@ public class Main {
 //        System.out.println((double)endTime - startTime/1E6);
         //result.printMyList(result,"src/output/caz1-4t.txt");
         //result.printMyList(result,"src/output/caz1-6t.txt");
-        result.printMyList(result,"src/output/caz1-8t.txt");
+        result.printMyList(result,"src/output/caz1-4t-new.txt");
+        //result.printMyList(result,"src/output/caz1-8t.txt");
         //result.printMyList(result,"src/output/caz2-4t.txt");
         //result.printMyList(result,"src/output/caz2-6t.txt");
        // result.printMyList(result,"src/output/caz2-8t.txt");
