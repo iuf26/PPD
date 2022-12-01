@@ -180,6 +180,12 @@ class MyQueue{
             return this.queueReadsLeft > 0;
 
     }
+
+    public synchronized void wakeupAll(){
+        this.transfer = false;
+      //  System.out.println("Waking all up");
+        notifyAll();
+    }
 }
 
 
@@ -294,6 +300,7 @@ class ThreadsSoltion {
                     e.printStackTrace();
                 }
             }
+            queue.wakeupAll();
             System.out.println("done PRODUCER");
         });
         producer.setPriority(Thread.MIN_PRIORITY);
@@ -309,9 +316,9 @@ class ThreadsSoltion {
                         resultList.addItem(elem);
 
                     }
+                    System.out.println(queue.getQueueReadsLeft());
 
-
-
+                    if(queue.getQueueReadsLeft() == 0)queue.wakeupAll();
                 }
                 System.out.println("Thread down");
             });
@@ -482,9 +489,9 @@ public class Main {
         //sol.printMyList(result,"src/output/caz1.txt");
         //sol.printMyList(result,"src/output/caz2.txt");
 
-        ThreadsSoltion sol = new ThreadsSoltion(4,"src/input/caz1",10);
-      // ThreadsSoltion sol = new ThreadsSoltion(6,"src/input/caz1",10);
-        //ThreadsSoltion sol = new ThreadsSoltion(8,"src/input/caz1",10);
+        //ThreadsSoltion sol = new ThreadsSoltion(4,"src/input/caz1",10);
+       //ThreadsSoltion sol = new ThreadsSoltion(6,"src/input/caz1",10);
+        ThreadsSoltion sol = new ThreadsSoltion(8,"src/input/caz1",10);
         // sol = new ThreadsSoltion(4,"src/input/caz2",5);
         //ThreadsSoltion sol = new ThreadsSoltion(6,"src/input/caz2",5);
         //ThreadsSoltion sol = new ThreadsSoltion(8,"src/input/caz2",5);
@@ -494,7 +501,7 @@ public class Main {
 //        System.out.println((double)endTime - startTime/1E6);
         //result.printMyList(result,"src/output/caz1-4t.txt");
         //result.printMyList(result,"src/output/caz1-6t.txt");
-        result.printMyList(result,"src/output/caz1-4t-new.txt");
+        result.printMyList(result,"src/output/caz1-8t-new2.txt");
         //result.printMyList(result,"src/output/caz1-8t.txt");
         //result.printMyList(result,"src/output/caz2-4t.txt");
         //result.printMyList(result,"src/output/caz2-6t.txt");
